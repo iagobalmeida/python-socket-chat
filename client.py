@@ -1,32 +1,51 @@
 from socket import *
 import threading
 from config import *
+from prompt_toolkit import prompt
 
 class Client:
     def __init__(self, hostname, port):
         self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.connect((hostname, port))
-        self.main_thread = threading.Thread(target=self.listen)
+        self.running     = True
+        self.keep_alive  = True
+        self.main_thread = threading.Thread(target=self.listen, args=(lambda:self.keep_alive, ))
         self.main_thread.start()
         self.last_private = ''
-        while True:
-            entry = input()
-            if(entry.startswith('/r')):
-                if len(self.last_private) >= 1:
-                    entry_split = entry.split(' ')
-                    action = entry_split.pop(0)
-                    entry_split.insert(0, f'/p {self.last_private}')
-                    self.socket.send((' '.join(entry_split)).encode())
+        while self.running:
+            try:
+                entry = prompt('>')
+                if(entry.startswith('/q')):
+                    self.socket.send('/q'.encode())
+                    self.socket.close()
+                    self.keep_alive = False
+                    self.main_thread.join()
+                    self.running = False
+                if(entry.startswith('/r')):
+                    if len(self.last_private) >= 1:
+                        entry_split = entry.split(' ')
+                        action      = entry_split.pop(0)
+                        entry_split.insert(0, f'/p {self.last_private}')
+                        self.socket.send((' '.join(entry_split)).encode())
+                    else:
+                        print(build_message_text('SERVER', 'Chat', 'Nenhuma mensagem para responder'))
                 else:
-                    print('Nenhuma mensagem para responder')
-            else:
-                self.socket.send(entry.encode())
+                    self.socket.send(entry.encode())
+            except Exception as e:
+                print(build_message_text('SERVER', 'Chat', f'{e}'))
 
-    def listen(self):
-        while True:
-            entry = self.socket.recv(4096).decode()
-            if(entry.startswith('📧')):
-                self.last_private = entry.split(' ')[2].replace(':', '')
-            print(entry)
+    def listen(self, keep_alive):
+        while keep_alive():
+            try:
+                entry = self.socket.recv(4096).decode()
+                if('📧' in entry):
+                    self.last_private = entry.split(' ')[2].replace(':', '')
+                print(f'\b{entry}')
+            except Exception as e:
+                self.socket.close()
+                self.keep_alive = False
+                self.running = False
+                print(build_message_text('SERVER', 'Chat', f'{e}'))
+        return
             
 client = Client(SERVER_HOST, SERVER_PORT)
