@@ -7,6 +7,7 @@ class Client:
     def __init__(self, hostname, port):
         self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.connect((hostname, port))
+        self.socket.settimeout(0.2)
         self.running     = True
         self.keep_alive  = True
         self.main_thread = threading.Thread(target=self.listen, args=(lambda:self.keep_alive, ))
@@ -31,8 +32,15 @@ class Client:
                         print(build_message_text('SERVER', 'Chat', 'Nenhuma mensagem para responder'))
                 else:
                     self.socket.send(entry.encode())
+            except timeout:
+                pass
             except Exception as e:
+                self.socket.close()
+                self.keep_alive = False
+                self.running = False
+                self.main_thread.join()
                 print(build_message_text('SERVER', 'Chat', f'{e}'))
+                break
 
     def listen(self, keep_alive):
         while keep_alive():
@@ -41,11 +49,18 @@ class Client:
                 if('📧' in entry):
                     self.last_private = entry.split(' ')[2].replace(':', '')
                 print(f'\b{entry}')
+            except timeout:
+                pass
             except Exception as e:
                 self.socket.close()
                 self.keep_alive = False
                 self.running = False
+                self.main_thread.join()
                 print(build_message_text('SERVER', 'Chat', f'{e}'))
+                break
         return
             
-client = Client(SERVER_HOST, SERVER_PORT)
+try:
+    client = Client(SERVER_HOST, SERVER_PORT)
+except Exception as e:
+    print(build_message_text('SERVER', 'Chat', f'{e}'))

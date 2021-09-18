@@ -50,7 +50,7 @@ class Server:
     def handleConnection(self, keep_alive, username):
         connection = self.clients[username]
         print(build_message_text('USER', username, f'Inicializando...'))
-        while keep_alive():
+        while connection['keep_alive']:
             try:
                 message = connection['conn'].recv(4026).decode()
                 self.sendMessage(username, message)
@@ -65,9 +65,13 @@ class Server:
 
     def endConnection(self, username):
         try:
+            print(build_message_text('SERVER', 'Chat', f'{username} - Desligando KeepAlive ...'))
             self.clients[username]['keep_alive'] = False
+            print(build_message_text('SERVER', 'Chat', f'{username} - Unindo Thread...'))
             self.clients[username]['thread'].join()
+            print(build_message_text('SERVER', 'Chat', f'{username} - Fechando conexão'))
             self.clients[username]['conn'].close()
+            print(build_message_text('SERVER', 'Chat', f'{username} - Apagando dados'))
             del self.clients[username]['thread']
             del self.clients[username]['conn']
             del self.clients[username]
@@ -120,7 +124,6 @@ class Server:
         self.keep_alive = False
         self.main_thread.join()
         for username, connection in list(self.clients.items()):
-            print(build_message_text('SERVER', 'Chat', f'Parando threads {username}...'))
             self.endConnection(username)
         print(build_message_text('SERVER', 'Chat', 'Saindo...'))
 
