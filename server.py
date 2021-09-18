@@ -1,7 +1,6 @@
 from socket import *
 import threading
 from config import *
-import msvcrt
 
 class Server:
     def __init__(self, hostname, port):
@@ -128,8 +127,7 @@ class Server:
         print(build_message_text('SERVER', 'Chat', 'Inicializando servidor...'))
         self.main_thread.start()
         print(build_message_text('SERVER', 'Chat', 'Pressione qualquer tecla para parar a execução...'))
-        while not msvcrt.kbhit():
-            pass
+        input()
         print(build_message_text('SERVER', 'Chat', 'Parando thread principal...'))
         self.keep_alive = False
         self.main_thread.join()
