@@ -15,7 +15,7 @@ class Client:
         self.last_private = ''
         while self.running:
             try:
-                entry = prompt('>')
+                entry = prompt()
                 if(entry.startswith('/q')):
                     self.socket.send('/q'.encode())
                     self.socket.close()
@@ -46,8 +46,9 @@ class Client:
         while keep_alive():
             try:
                 entry = self.socket.recv(4096).decode()
-                if('📧' in entry):
-                    self.last_private = entry.split(' ')[2].replace(':', '')
+                if(entry.find('📧') >= 0):
+                    split_entry = entry.split(' ')
+                    self.last_private = split_entry[7]
                 print(f'\b{entry}')
             except timeout:
                 pass

@@ -33,6 +33,13 @@ class Server:
                 
         if author == 'server':
             send(message_raw)
+        elif message_raw.startswith(COMMANDS['LIST']):
+            message_text =  f'{author} aqui está uma lista de todos os usuários disponíveis:'
+            for username, connection in list(self.clients.items()):
+                if username != author:
+                    message_text += f"\n{build_message_text('SERVER', username, '')}"
+            message = build_message_text('SERVER', 'Chat', message_text)
+            send(message, author)
         elif message_raw.startswith(COMMANDS['QUIT']):
             message = build_message_text('SERVER', 'Chat', f'{author} está saindo do chat...')
             send(message)
@@ -96,6 +103,9 @@ class Server:
                     connection.send(message.encode())
                     username = connection.recv(1024).decode()
                 connection.settimeout(0.2)
+                
+                message = build_message_text('SERVER', 'Chat', 'Seja bem vindo! \n\tUtilize o comando /l para listar os usuários onlines \n\tUtilize o comando /p para mandar mensagens privadas \n\t Utilize o comando /r responder a última mensagem privada recebida \n\t Utilize o comado /q para sair')
+                connection.send(message.encode())
 
                 self.clients[username] = {
                     'conn':         connection,
