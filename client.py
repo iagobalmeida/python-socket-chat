@@ -16,11 +16,15 @@ class Client:
         while self.running:
             try:
                 entry = prompt()
+
+                if (not self.running):
+                    print(build_message_text('SERVER', 'Chat', 'Falha ao enviar mensagem. Chat finalizado'))
+                    raise Exception('')
+
                 if(entry.startswith('/q')):
                     self.socket.send('/q'.encode())
                     self.socket.close()
                     self.keep_alive = False
-                    self.main_thread.join()
                     self.running = False
                 if(entry.startswith('/r')):
                     if len(self.last_private) >= 1:
@@ -38,14 +42,17 @@ class Client:
                 self.socket.close()
                 self.keep_alive = False
                 self.running = False
-                self.main_thread.join()
-                print(build_message_text('SERVER', 'Chat', f'{e}'))
                 break
 
     def listen(self, keep_alive):
-        while keep_alive():
+        while self.keep_alive:
             try:
                 entry = self.socket.recv(4096).decode()
+
+                if (len(entry) == 0):
+                    print(build_message_text('SERVER', 'Chat', 'Chat finalizado'))
+                    raise Exception('')
+
                 if(entry.find('📧') >= 0):
                     split_entry = entry.split(' ')
                     self.last_private = split_entry[7]
@@ -54,11 +61,11 @@ class Client:
                 pass
             except Exception as e:
                 self.socket.close()
-                self.keep_alive = False
-                self.running = False
-                self.main_thread.join()
-                print(build_message_text('SERVER', 'Chat', f'{e}'))
                 break
+
+        self.keep_alive = False
+        self.running = False
+
         return
             
 try:

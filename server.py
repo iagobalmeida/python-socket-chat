@@ -38,7 +38,7 @@ class Server:
                 if username != author:
                     message_text += f"\n{build_message_text('SERVER', username, '')}"
             message = build_message_text('SERVER', 'Chat', message_text)
-            send(message, author)
+            send(message + "\n", author)
         elif message_raw.startswith(COMMANDS['QUIT']):
             message = build_message_text('SERVER', 'Chat', f'{author} está saindo do chat...')
             send(message)
