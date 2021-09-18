@@ -103,7 +103,7 @@ class Server:
                     username = connection.recv(1024).decode()
                 connection.settimeout(0.2)
                 
-                message = build_message_text('SERVER', 'Chat', 'Seja bem vindo! \n\tUtilize o comando /l para listar os usuários onlines \n\tUtilize o comando /p para mandar mensagens privadas \n\t Utilize o comando /r responder a última mensagem privada recebida \n\t Utilize o comado /q para sair')
+                message = build_message_text('SERVER', 'Chat', 'Seja bem vindo! \n\tUtilize o comando /l para listar os usuários onlines \n\tUtilize o comando /p para mandar mensagens privadas \n\t Utilize o comando /r responder a última mensagem privada recebida \n\t Utilize o comado /q para sair\n')
                 connection.send(message.encode())
 
                 self.clients[username] = {
