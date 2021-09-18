@@ -50,6 +50,8 @@ class Client:
                     split_entry = entry.split(' ')
                     self.last_private = split_entry[7]
                 print(f'\b{entry}')
+            except error:
+                pass
             except timeout:
                 pass
             except Exception as e:
